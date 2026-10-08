@@ -2,6 +2,9 @@
 
 A lightweight, robust, flexible, and containerized NFS server.
 
+## 20261008
+- change base image to debian
+
 ## Why?
 
 This is the only containerized NFS server that offers **all** of the following features:
@@ -45,9 +48,9 @@ This is the only containerized NFS server that offers **all** of the following f
    - `rpcsec_gss_krb5` (*only if Kerberos is used*)
 
    You can manually enable these modules on the Docker host with:
-   
+
    `modprobe {nfs,nfsd,rpcsec_gss_krb5}`
-   
+
    or you can just allow the container to [load them automatically](https://github.com/ehough/docker-nfs-server/blob/develop/doc/feature/auto-load-kernel-modules.md).
 1. The container will need to run with `CAP_SYS_ADMIN` (or `--privileged`). This is necessary as the server needs to mount several filesystems *inside* the container to support its operation, and performing mounts from inside a container is impossible without these capabilities.
 1. The container will need local access to the files you'd like to serve via NFS. You can use Docker volumes, bind mounts, files baked into a custom image, or virtually any other means of supplying files to a Docker container.
@@ -112,7 +115,7 @@ Let's break that command down into its individual pieces to see what's required 
    As noted in the [requirements](#requirements), the container will need additional privileges. So your `run` command will need *either*:
 
        docker run --cap-add SYS_ADMIN ... erichough/nfs-server
-       
+
     or
 
        docker run --privileged ... erichough/nfs-server

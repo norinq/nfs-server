@@ -1,11 +1,18 @@
-ARG BUILD_FROM=alpine:latest
+# syntax=docker/dockerfile:1.7
+ARG DEBIAN_VERSION=stable-slim
 
-FROM $BUILD_FROM
+FROM debian:${DEBIAN_VERSION}
 
-RUN apk --update --no-cache add bash nfs-utils && \
-                                                  \
+SHELL ["/bin/bash", "-o", "errexit", "-o", "nounset", "-o", "pipefail", "-c"]
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    nfs-kernel-server nfs-common \
+    libcap2-bin kmod && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
     # remove the default config files
-    rm -v /etc/idmapd.conf /etc/exports
+    rm -vf /etc/idmapd.conf /etc/exports
 
 # http://wiki.linux-nfs.org/wiki/index.php/Nfsv4_configuration
 RUN mkdir -p /var/lib/nfs/rpc_pipefs                                                     && \

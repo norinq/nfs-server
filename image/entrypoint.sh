@@ -273,9 +273,15 @@ is_kernel_module_loaded() {
 
 is_granted_linux_capability() {
 
-  if capsh --print | grep -Eq "^Current: = .*,?${1}(,|$)"; then
+  # check capsh support '--has-p=' or not
+  if capsh --help 2>&1 | grep -Fq -- '--has-p='; then
+    capsh --has-p="${1}" >/dev/null 2>&1
+    return $?
+  elif capsh --print | grep -Eq "^Current: .*,?${1}(,|$)"; then
     return 0
   fi
+
+  # codex: libcap 2.29~2.31 not supporting '--has-p=' properly
 
   return 1
 }
@@ -530,7 +536,14 @@ boot_helper_mount() {
 boot_helper_get_version_flags() {
 
   local -r requested_version="${state[$STATE_NFS_VERSION]}"
-  local flags=('--nfs-version' "$requested_version" '--no-nfs-version' 2)
+  local flags=('--nfs-version' "$requested_version")
+
+  #### codex start ####
+  # Kernels without NFSv2 reject even an explicit request to disable it.
+  if [[ ! -r "$MOUNT_PATH_NFSD/versions" ]] || grep -Eq '(^|[[:space:]])[+-]2([[:space:]]|$)' "$MOUNT_PATH_NFSD/versions"; then
+    flags+=('--no-nfs-version' 2)
+  fi
+  #### codex end ####
 
   if ! is_nfs3_enabled; then
     flags+=('--no-nfs-version' 3)
