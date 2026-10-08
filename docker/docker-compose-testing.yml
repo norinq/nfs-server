@@ -1,0 +1,33 @@
+# Copyright Broadcom, Inc. All Rights Reserved.
+# SPDX-License-Identifier: APACHE-2.0
+
+services:
+  nfs-server:
+    build:
+      context: ../image
+      dockerfile: Dockerfile
+    develop:
+      watch:
+        - action: rebuild
+          path: ../image
+    stdin_open: true
+    tty: true
+    privileged: true
+    # cap_add:
+    #   - SYS_ADMIN
+    environment:
+      NFS_LOG_LEVEL: "DEBUG"
+      # NFS_DISABLE_VERSION_3: "1"
+      NFS_EXPORT_0: "/data *(rw,sync,no_subtree_check,fsid=0)"
+    ports:
+      - 2049:2049
+      - 32765:32765
+      - 32766:32766
+      - 32767:32767
+    volumes:
+      - /lib/modules:/lib/modules:ro
+      - nfs-data:/data # Keep exported data on the host filesystem rather than container OverlayFS.
+    # entrypoint: ["/bin/bash"]
+
+volumes:
+  nfs-data:
